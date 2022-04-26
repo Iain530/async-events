@@ -1,20 +1,20 @@
-from asyncevent import subscribe, dispatch, Event, NewEvent, on
+from asyncevent import subscribe, dispatch, Event, NewEvent, listen
 import gc
 import asyncio
 
 
-# @on(Event)
-# async def handle(event):
-#     print(event)
+@listen(Event)
+def handle(event):
+    print(event)
 
 
 class A:
     def __init__(self) -> None:
-        # subscribe(self.handle, Event)
+        subscribe(self.handle, Event)
         pass
 
-    @on(Event)  # TODO: tell if in class when decorator is applied
-    async def handle(self, event):
+    # @on(Event)  # TODO: tell if in class when decorator is applied
+    def handle(self, event):
         print(event)
 
 
@@ -23,6 +23,7 @@ async def main():
     while True:
         dispatch(Event())
         dispatch(NewEvent())
+        dispatch("1")
         await asyncio.sleep(1)
         gc.collect()
         a = 1

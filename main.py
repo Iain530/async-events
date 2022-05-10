@@ -1,29 +1,30 @@
-from asyncevent import subscribe, dispatch, Event, NewEvent, listen
+from asyncevent import AsyncEvents, Event
 import gc
 import asyncio
 
 
-@listen(Event)
-def handle(event):
+events = AsyncEvents()
+
+
+@events.listen(Event)
+async def handle(event):
     print(event)
 
 
 class A:
     def __init__(self) -> None:
-        subscribe(self.handle, Event)
+        events.subscribe(self.handle, Event)
         pass
 
-    # @on(Event)  # TODO: tell if in class when decorator is applied
-    def handle(self, event):
+    async def handle(self, event):
         print(event)
 
 
 async def main():
     a = A()
     while True:
-        dispatch(Event())
-        dispatch(NewEvent())
-        dispatch("1")
+        events.dispatch(Event())
+        events.dispatch("1")
         await asyncio.sleep(1)
         gc.collect()
         a = 1

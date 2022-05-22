@@ -22,7 +22,7 @@ EventListenerType = Callable[[Event], None]
 
 class AsyncEvents:
     def __init__(self) -> None:
-        self._subs: dict[type[Event], list[ReferenceType[EventListenerType]]] = defaultdict(list)
+        self._subs: dict[type[Event], set[ReferenceType[EventListenerType]]] = defaultdict(set)
 
     def subscribe(self, handler: EventListenerType, *event_types: type[Event]) -> None:
         """
@@ -30,11 +30,11 @@ class AsyncEvents:
         specified event types passed will also trigger the handler.
         """
         if not asyncio.iscoroutinefunction(handler):
-            raise TypeError(f"Event {handler=} must be a coroutine function")
+            raise TypeError("Event handler must be a coroutine function")
 
         ref = self._get_weakref(handler)
         for event_type in event_types:
-            self._subs[event_type].append(ref)
+            self._subs[event_type].add(ref)
 
     def listen(self, *event_types: type[Event]):
         """
@@ -57,7 +57,7 @@ class AsyncEvents:
         for event_type in event_types:
             try:
                 self._subs[event_type].remove(self._get_weakref(handler))
-            except ValueError:
+            except KeyError:
                 LOGGER.warning(f"{handler=} is not subscribed to {event_type=}, could not unsubscribe")
 
     def dispatch(self, event: Event) -> None:
